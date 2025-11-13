@@ -6,8 +6,16 @@ const routes = [
     redirect: '/add',
 
     children: [
-      { path: 'add', component: () => import('pages/IndexPage.vue') },
-      { path: '/edit', component: () => import('pages/EditPage.vue') },
+      {
+        path: 'add',
+        component: () => import('pages/IndexPage.vue'),
+        meta: { title: 'Додати Героя' },
+      },
+      {
+        path: 'edit',
+        component: () => import('pages/EditPage.vue'),
+        meta: { title: 'Редагування Даних' },
+      },
     ],
   },
 

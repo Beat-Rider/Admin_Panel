@@ -4,7 +4,7 @@
       <q-toolbar>
         <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
 
-        <q-toolbar-title> Додати Героя </q-toolbar-title>
+        <q-toolbar-title>{{ currentTitle }}</q-toolbar-title>
       </q-toolbar>
     </q-header>
 
@@ -23,7 +23,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import EssentialLink from 'components/EssentialLink.vue'
 
 const linksList = [
@@ -46,4 +47,17 @@ const leftDrawerOpen = ref(false)
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
+
+const route = useRoute()
+
+// Реактивний заголовок
+const currentTitle = computed(() => route.meta.title || 'Адмін Панель')
+
+// Примусове оновлення заголовка при переходах
+watch(
+  () => route.fullPath,
+  () => {
+    // Викличе перерахунок computed
+  },
+)
 </script>
