@@ -128,7 +128,7 @@
             type="textarea"
             outlined
             autogrow
-            maxlength="250"
+            maxlength="1000"
             counter
             :rules="lifeStoryRules"
             class="q-mb-md"
@@ -144,34 +144,7 @@
             :rules="coordsRules"
             maxlength="20"
             class="q-mb-s"
-          >
-            <template #append>
-              <q-btn
-                round
-                dense
-                flat
-                color="primary"
-                icon="map"
-                @click="openMapDialog"
-                title="Вибрати На Карті"
-              /> </template
           ></q-input>
-
-          <q-dialog v-model="showMapDialog" persistent>
-            <q-card style="width: 90vw; max-width: 1200px; height: 90vh">
-              <q-card-section class="row items-center justify-between">
-                <div class="text-h6">Вибір Координат На Мапі</div>
-                <q-btn icon="close" flat round dense v-close-popup />
-              </q-card-section>
-
-              <q-separator />
-
-              <q-card-section class="q-pa-none" style="height: calc(100% - 100px)">
-                <!-- тут буде сама карта -->
-                <div id="map" style="width: 100%; height: 100%"></div>
-              </q-card-section>
-            </q-card>
-          </q-dialog>
 
           <div v-if="coordsValid" class="q-mb-md" style="display: flex; justify-content: center">
             <q-btn
@@ -278,8 +251,8 @@ const showDeathDate = ref(false)
 // Життєва Історія
 const lifeStoryRules = [
   (v) => !!v || 'Поле не може бути порожнім',
-  (v) => v.length <= 250 || 'Максимум 250 символів',
-  (v) => v.length >= 40 || 'Мінімум 40 символів',
+  (v) => v.length <= 1000 || 'Максимум 1000 символів',
+  (v) => v.length >= 50 || 'Мінімум 50 символів',
 ]
 
 // Координати та адреса
@@ -350,13 +323,6 @@ const coordsRules = [
   (v) => v.replace(/[^0-9]/g, '').length <= 16 || 'Максимум 16 цифр',
   (v) => /^-?\d{2}\.\d{2,},\s-?\d{2}\.\d{2,}$/.test(v) || 'Невірний формат координат',
 ]
-
-// Інтеграція Карти
-const showMapDialog = ref(false)
-
-function openMapDialog() {
-  showMapDialog.value = true
-}
 
 // Відправка на сервер
 
