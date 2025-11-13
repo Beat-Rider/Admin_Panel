@@ -38,6 +38,7 @@ export default defineConfig((/* ctx */) => {
       },
 
       vueRouterMode: 'hash', // available values: 'hash', 'history'
+      publicPath: '/Admin_Panel/',
       // vueRouterBase,
       // vueDevtools,
       // vueOptionsAPI: false,
