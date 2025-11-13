@@ -2,7 +2,13 @@ const routes = [
   {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: '', component: () => import('pages/IndexPage.vue') }],
+
+    redirect: '/add',
+
+    children: [
+      { path: 'add', component: () => import('pages/IndexPage.vue') },
+      { path: '/edit', component: () => import('pages/EditPage.vue') },
+    ],
   },
 
   // Always leave this as last one,

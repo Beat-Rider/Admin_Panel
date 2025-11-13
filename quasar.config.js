@@ -80,19 +80,18 @@ export default defineConfig((/* ctx */) => {
     framework: {
       config: {},
 
-      // iconSet: 'material-icons', // Quasar icon set
-      // lang: 'en-US', // Quasar language pack
-
-      // For special cases outside of where the auto-import strategy can have an impact
-      // (like functional components as one of the examples),
-      // you can manually specify Quasar components/directives to be available everywhere:
-      //
-      // components: [],
-      // directives: [],
-
-      // Quasar plugins
-      plugins: [],
+      plugins: ['Notify'],
     },
+
+    // iconSet: 'material-icons', // Quasar icon set
+    // lang: 'en-US', // Quasar language pack
+
+    // For special cases outside of where the auto-import strategy can have an impact
+    // (like functional components as one of the examples),
+    // you can manually specify Quasar components/directives to be available everywhere:
+    //
+    // components: [],
+    // directives: [],
 
     // animations: 'all', // --- includes all animations
     // https://v2.quasar.dev/options/animations
