@@ -2,7 +2,7 @@
   <q-page padding>
     <div class="q-pa-md" style="max-width: 400px; margin: auto">
       <q-card flat bordered class="q-pa-lg shadow-2">
-        <q-card-section>
+        <q-form @submit.prevent="saveData">
           <div>
             <div class="text-center q-mb-xs" style="margin-bottom: 2vh">
               Заповніть Обов'язкові Поля
@@ -32,7 +32,7 @@
             label="Ім'я"
             type="text"
             outlined
-            :rules="nameRules"
+            :rules="optionalNameRules"
             @input="cleanName('name')"
             class="q-mb-md"
           />
@@ -41,7 +41,7 @@
             label="Прізвище"
             type="text"
             outlined
-            :rules="nameRules"
+            :rules="optionalNameRules"
             @input="cleanName('name')"
             class="q-mb-md"
           />
@@ -50,7 +50,7 @@
             label="По-Батькові"
             type="text"
             outlined
-            :rules="nameRules"
+            :rules="optionalNameRules"
             @input="cleanName('name')"
             class="q-mb-md"
           />
@@ -59,7 +59,7 @@
             label="Позивний"
             type="text"
             outlined
-            :rules="nameRules"
+            :rules="optionalNameRules"
             @input="cleanName('name')"
             class="q-mb-md"
           />
@@ -92,7 +92,7 @@
             label="Місце Народження"
             type="text"
             outlined
-            :rules="nameRules"
+            :rules="optionalNameRules"
             @input="cleanName('name')"
             class="q-mb-md"
           />
@@ -165,8 +165,8 @@
             class="q-mb-md"
           />
 
-          <q-btn label="Зберегти" color="primary" @click="saveData" class="full-width" />
-        </q-card-section>
+          <q-btn type="submit" label="Зберегти" color="primary" class="full-width" />
+        </q-form>
       </q-card>
     </div>
   </q-page>
@@ -174,6 +174,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { Dialog, Notify } from 'quasar'
 
 const form = ref({
   photo: null,
@@ -186,14 +187,11 @@ const form = ref({
   d_date: '',
   rank: '',
   lifeStory: '',
-  Latitude: '',
-  Longitude: '',
-  address: '',
   coords: '',
-  mapLink: '',
+  address: '',
 })
 
-// Попередній перегляд
+// Попередній Перегляд Фото
 
 const photoPreview = ref(null)
 
@@ -207,10 +205,10 @@ const previewImage = (file) => {
 
 // Правила валідації
 
-const nameRules = [
-  (v) => !!v || 'Поле не може бути порожнім',
-  (v) => v.trim().length >= 2 || 'Мінімум 2 літери',
+const optionalNameRules = [
+  (v) => v === '' || v.trim().length >= 2 || 'Мінімум 2 літери',
   (v) =>
+    v === '' ||
     /^[А-ЯІЇЄҐ][А-Яа-яІЇЄҐіїєґʼ' -]+$/.test(v) ||
     'Перша Велика. Українська. Дефіс та апостроф дозволені.',
 ]
@@ -250,9 +248,8 @@ const showDeathDate = ref(false)
 
 // Життєва Історія
 const lifeStoryRules = [
-  (v) => !!v || 'Поле не може бути порожнім',
-  (v) => v.length <= 1000 || 'Максимум 1000 символів',
-  (v) => v.length >= 50 || 'Мінімум 50 символів',
+  (v) => v === '' || v.length <= 1000 || 'Максимум 1000 символів',
+  (v) => v === '' || v.length >= 50 || 'Мінімум 50 символів',
 ]
 
 // Координати та адреса
@@ -306,7 +303,14 @@ const coordsValid = ref(false)
 
 function validateCoords() {
   const v = form.value.coords
-  // формат: 12.345..., 12.345... (мінус також дозволений)
+
+  // Якщо поле пусте → вважаємо валідним і не створюємо mapLink
+  if (!v || v.trim() === '') {
+    coordsValid.value = false
+    form.value.mapLink = ''
+    return
+  }
+
   const pattern = /^\d{2}\.\d{2,},\s\d{2}\.\d{2,}$/
   coordsValid.value = pattern.test(v)
 
@@ -319,21 +323,91 @@ function validateCoords() {
 }
 
 const coordsRules = [
-  (v) => v.replace(/[^0-9]/g, '').length >= 16 || 'Мінімум 16 цифр',
-  (v) => v.replace(/[^0-9]/g, '').length <= 16 || 'Максимум 16 цифр',
-  (v) => /^-?\d{2}\.\d{2,},\s-?\d{2}\.\d{2,}$/.test(v) || 'Невірний формат координат',
+  (v) => !v || v.trim() === '' || v.replace(/[^0-9]/g, '').length >= 16 || 'Мінімум 16 цифр',
+
+  (v) => !v || v.trim() === '' || v.replace(/[^0-9]/g, '').length <= 16 || 'Максимум 16 цифр',
+
+  (v) =>
+    !v ||
+    v.trim() === '' ||
+    /^-?\d{2}\.\d{2,},\s-?\d{2}\.\d{2,}$/.test(v) ||
+    'Невірний формат координат',
 ]
 
 // Відправка на сервер
-
 const users = ref([])
 
-function saveData() {
-  if (form.value.name && form.value.surname) {
-    users.value.push({ ...form.value })
-    form.value = { name: '', surname: '', lifeStory: '' }
-  } else {
-    alert("Будь ласка, заповніть усі обов'язкові поля!")
+function fieldName(key) {
+  const names = {
+    name: "Ім'я",
+    surname: 'Прізвище',
+    midName: 'По-батькові',
+    callSign: 'Позивний',
+    b_date: 'Дата Народження',
+    place: 'Місце Народження',
+    d_date: 'Дата Смерті',
+    lifeStory: 'Життєва Історія',
+    rank: 'Звання',
+    coords: 'Координати',
+    address: 'Адреса',
   }
+  return names[key] || key
+}
+
+function saveData() {
+  const data = form.value
+
+  const filled = Object.keys(data)
+    .filter((key) => {
+      const v = data[key]
+      return v !== null && String(v).trim() !== ''
+    })
+    .map((key) => ({
+      field: key,
+      value: typeof data[key] === 'string' ? data[key].trim() : data[key],
+    }))
+
+  if (filled.length === 0) {
+    Notify.create({
+      message: 'Будь ласка, заповніть хоча б одне поле!',
+      color: 'red',
+      icon: 'warning',
+      position: 'top',
+    })
+    return
+  }
+
+  const message = filled
+    .map((f) => {
+      if (f.field === 'photo') {
+        return `• Фото: <b>файл обрано</b>`
+      }
+      return `• ${fieldName(f.field)}: <b>${f.value}</b>`
+    })
+    .join('<br>')
+
+  Dialog.create({
+    title: 'Підтвердження',
+    message: `Ви ввели такі дані:<br><br>${message}<br><br>Підтвердити збереження?`,
+    html: true,
+    ok: { label: 'Підтвердити', color: 'primary' },
+    cancel: { label: 'Скасувати', color: 'grey' },
+  }).onOk(() => {
+    users.value.push({ ...data })
+
+    // тут можеш так само показати підсумок, як у редагуванні:
+    Notify.create({
+      message: `✅ Дані збережено:<br>${message}`,
+      color: 'green-7',
+      icon: 'check_circle',
+      position: 'top',
+      html: true,
+      timeout: 10000,
+    })
+
+    for (const key in form.value) {
+      form.value[key] = key === 'photo' ? null : ''
+    }
+  })
 }
 </script>

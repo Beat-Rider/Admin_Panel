@@ -176,8 +176,6 @@
 import { ref } from 'vue'
 import { Notify } from 'quasar'
 
-console.log('updateData RUN')
-
 //  Дані людини ("база" в памʼяті)
 const user = ref({
   photo: null,
@@ -189,9 +187,7 @@ const user = ref({
   place: '',
   d_date: '',
   rank: '',
-  lifeStory: '',
-  Latitude: '',
-  Longitude: '',
+  coords: '',
   address: '',
 })
 
@@ -206,8 +202,7 @@ const form = ref({
   d_date: '',
   rank: '',
   lifeStory: '',
-  Latitude: '',
-  Longitude: '',
+  coords: '',
   address: '',
 })
 
@@ -351,6 +346,7 @@ const lifeStoryRules = [
   (v) => v === '' || v.length >= 50 || 'Мінімум 50 символів',
 ]
 
+// Координати
 function autoFormatCoords() {
   let v = form.value.coords || ''
 
@@ -401,7 +397,14 @@ const coordsValid = ref(false)
 
 function validateCoords() {
   const v = form.value.coords
-  // формат: 12.345..., 12.345... (мінус також дозволений)
+
+  // Якщо поле пусте → вважаємо валідним і не створюємо mapLink
+  if (!v || v.trim() === '') {
+    coordsValid.value = false
+    form.value.mapLink = ''
+    return
+  }
+
   const pattern = /^\d{2}\.\d{2,},\s\d{2}\.\d{2,}$/
   coordsValid.value = pattern.test(v)
 
@@ -414,8 +417,14 @@ function validateCoords() {
 }
 
 const coordsRules = [
-  (v) => v.replace(/[^0-9]/g, '').length >= 16 || 'Мінімум 16 цифр',
-  (v) => v.replace(/[^0-9]/g, '').length <= 16 || 'Максимум 16 цифр',
-  (v) => /^-?\d{2}\.\d{2,},\s-?\d{2}\.\d{2,}$/.test(v) || 'Невірний формат координат',
+  (v) => !v || v.trim() === '' || v.replace(/[^0-9]/g, '').length >= 16 || 'Мінімум 16 цифр',
+
+  (v) => !v || v.trim() === '' || v.replace(/[^0-9]/g, '').length <= 16 || 'Максимум 16 цифр',
+
+  (v) =>
+    !v ||
+    v.trim() === '' ||
+    /^-?\d{2}\.\d{2,},\s-?\d{2}\.\d{2,}$/.test(v) ||
+    'Невірний формат координат',
 ]
 </script>

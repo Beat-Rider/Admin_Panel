@@ -81,7 +81,7 @@ export default defineConfig((/* ctx */) => {
     framework: {
       config: {},
 
-      plugins: ['Notify'],
+      plugins: ['Notify', 'Dialog'],
     },
 
     // iconSet: 'material-icons', // Quasar icon set
